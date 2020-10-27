@@ -26,13 +26,15 @@ const appendAttributeOptionsArray = async (attributes, dataToAppend, apiConnecto
     } else {
       logger.info(`options array not cached (attribute id ${attribute.id}`)
       dataToAppend[`${attribute.name.toLowerCase()}_options`] = []
-      let termsResponse = await apiConnector.getAsync(`products/attributes/${attribute.id}/terms`)
+      let termsResponse = await apiConnector.getAsync(`products/attributes/${attribute.id}/terms`).catch(e => console.log(attribute.id), 'terms')
       let response = termsResponse.toJSON().body
       options = JSON.parse(response)
     }
 
-    for (let term of options) {
-      dataToAppend[`${attribute.name.toLowerCase()}_options`].push(term.id)
+    if (options.length) {
+      for (let term of options) {
+        dataToAppend[`${attribute.name.toLowerCase()}_options`].push(term.id)
+      }
     }
   }
 
@@ -49,16 +51,18 @@ const appendAttributeOptions = async (attributes, dataToAppend, apiConnector, lo
       termsDetails = optionTermsCache[attribute.id]
     } else {
       logger.info(`attribute options not cached (attribute id ${attribute.id}`)
-      let termsResponse = await apiConnector.getAsync(`products/attributes/${attribute.id}/terms`)
+      let termsResponse = await apiConnector.getAsync(`products/attributes/${attribute.id}/terms`).catch(e => console.log(attribute.id), 'terms')
       let response = termsResponse.toJSON().body
       termsDetails = JSON.parse(response)
       optionTermsCache[attribute.id] = termsDetails
     }
 
-    for (let term of termsDetails) {
-      if (attribute.option === term.name) {
-        logger.info(`appending options... ${attribute.name.toLowerCase()}: ${term.name}`)
-          dataToAppend[attribute.name.toLowerCase()] = term.id
+    if (termsDetails.length) {
+      for (let term of termsDetails) {
+        if (attribute.option === term.name) {
+          logger.info(`appending options... ${attribute.name.toLowerCase()}: ${term.name}`)
+            dataToAppend[attribute.name.toLowerCase()] = term.id
+        }
       }
     }
   }
@@ -96,7 +100,7 @@ const extractConfigurableOptions = async (attributes, apiConnector, logger) => {
         attributeData = attributeCache[attribute.id]
       } else {
         logger.info(`attribute data not cached (attribute id ${attribute.id}, name ${attribute.name}`)
-        let attributeDetailsResponse = await apiConnector.getAsync(`products/attributes/${attribute.id}`)
+        let attributeDetailsResponse = await apiConnector.getAsync(`products/attributes/${attribute.id}`).catch(e => console.log(attribute.id), 'attribute')
 
         let response = attributeDetailsResponse.toJSON().body
         let attributeDetails = JSON.parse(response)
@@ -106,18 +110,18 @@ const extractConfigurableOptions = async (attributes, apiConnector, logger) => {
           "id": `${attribute.id}`,
           "label": attribute.name,
           "position": attribute.position,
-          "attribute_code": attributeDetails.slug.replace('pa_',''),
+          "attribute_code": attributeDetails.slug ? attributeDetails.slug.replace('pa_','') : '',
         }
-        let result = await apiConnector.getAsync(`products/attributes/${attribute.id}/terms`)
+        let result = await apiConnector.getAsync(`products/attributes/${attribute.id}/terms`).catch(e => console.log(attribute.id), 'terms')
 
         let body = result.toJSON().body
         let options = JSON.parse(body)
 
-        attributeData.values = options.map((option) => {
+        attributeData.values = options.map ? options.map((option) => {
           return {
             value_index: option.id
           }
-        })
+        }) : []
 
         attributeCache[attribute.id] = attributeData
       }
@@ -163,8 +167,8 @@ const fill = async (source, { apiConnector, elasticClient, config, logger }) => 
     "sku": sku,
     "has_options": variations && variations.length,
     "required_options": 0,
-    "created_at":'2018-10-01 12:03:19',
-    "updated_at": '2018-10-01 12:03:19',
+    "created_at":'2015-04-07T10:43:03.000-07:00',
+    "updated_at": '2015-04-07T10:43:03.000-07:00',
     "color": null,
     "gender": null,
     "material": 138,
