@@ -45,6 +45,8 @@ const extractSubcategories = async (parent_id) => {
         "url_key":  child.slug,
         "url_path":  child.id,
         "product_count": 10,
+        "slug": child.slug,
+        "display_mode": "PRODUCTS"
       }
 
       childData.children_count = childData.children_data.length
@@ -89,6 +91,8 @@ const fill = async ({ id,
     "url_path": slug,
     "product_count": 10,
     "children_data": await extractSubcategories(parseInt(id)),
+    "slug": slug,
+    "display_mode": "PRODUCTS"
   };
 
   output.children_count = output.children_data.length;

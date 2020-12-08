@@ -76,7 +76,7 @@ const extractConfigurableChildren = async (productId, variations, apiConnector, 
     for (let variation of variations) {
       let variationData = {
         "sku": variation.sku,
-        "price": variation.price,
+        "price": Number(variation.price),
         "image": variation.image.src,
         "is_salable": (variation.in_stock && variation.purchasable),
         "product_id": productId,
@@ -158,6 +158,9 @@ const fill = async (source, { apiConnector, elasticClient, config, logger }) => 
     variations,
     timestamp
   } = source
+
+  regular_price = Number(regular_price)
+  price = Number(price)
 
   let output = {
     "timestamp": timestamp,
