@@ -162,6 +162,8 @@ const fill = async (source, { apiConnector, elasticClient, config, logger }) => 
   regular_price = Number(regular_price)
   price = Number(price)
 
+
+
   let output = {
     "timestamp": timestamp,
     "entity_type_id": 4,
@@ -224,18 +226,23 @@ const fill = async (source, { apiConnector, elasticClient, config, logger }) => 
     "special_from_date": null,
     "special_to_date": null,
     "is_salable": true,
-    "stock_item": {
-      "is_in_stock": true // TODO
-    },
     "id": id,
     "category": extractCategories(categories),
     "category_ids": extractCategories(categories).map((value, index) => value.category_id),
-    "stock":{
-      "is_in_stock": true
-    },
     "configurable_children": variations ? await extractConfigurableChildren(source.id, variations, apiConnector(config), logger) : null,
     "configurable_options": attributes ? await extractConfigurableOptions(attributes, apiConnector(config), logger): null
   }
+
+  const isInStock = !source.manage_stock || source.stock_status === 'instock'
+  Object.assign(output, {
+    "stock":{
+      "is_in_stock": isInStock,
+      "quantity": source.manage_stock ? source.stock.quantity : 1e5,
+    },
+    "stock_item": {
+      "is_in_stock": isInStock,
+    },
+  })
 
   await appendAttributeOptionsArray(attributes, output, apiConnector(config), logger)
 
