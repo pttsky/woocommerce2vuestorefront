@@ -36,6 +36,12 @@ const appendAttributeOptionsArray = async (attributes, dataToAppend, apiConnecto
         dataToAppend[`${attribute.name.toLowerCase()}_options`].push(term.id)
       }
     }
+
+    const optionsInfo = options
+      .filter(o => attribute.options.includes(o.name))
+      .sort((a, b) => Math.sign(a.id - b.id))
+    dataToAppend[attribute.name.toLowerCase()] = optionsInfo.map(o => o.id)
+    dataToAppend[`${attribute.name.toLowerCase()}_values_info`] = optionsInfo
   }
 
   return dataToAppend
@@ -156,12 +162,12 @@ const fill = async (source, { apiConnector, elasticClient, config, logger }) => 
     grouped_products,
     categories,
     variations,
-    timestamp
+    timestamp,
+    short_description
   } = source
 
   regular_price = Number(regular_price)
   price = Number(price)
-
 
 
   let output = {
@@ -172,15 +178,8 @@ const fill = async (source, { apiConnector, elasticClient, config, logger }) => 
     "sku": sku,
     "has_options": variations && variations.length,
     "required_options": 0,
-    "created_at":'2015-04-07T10:43:03.000-07:00',
-    "updated_at": '2015-04-07T10:43:03.000-07:00',
-    "color": null,
-    "gender": null,
-    "material": 138,
-    "luggage_size": null,
-    "luggage_travel_style": null,
-    "bag_luggage_type": 153,
-    "jewelry_type": null,
+    "created_at":'2015-04-07',
+    "updated_at": '2015-04-07',
     "status": 1,
     "accessories_size": null,
     "visibility": 4,//catalog_visibility === 'visible' ? 4 : 0,
@@ -190,8 +189,6 @@ const fill = async (source, { apiConnector, elasticClient, config, logger }) => 
     "meta_keyword": null,
     "short_description": "",
     "custom_layout_update": null,
-    "accessories_type": "",
-    "luggage_style": "",
     "name": name,
     "meta_title": null,
     "image": typeof (images[0]==='Object' && images[0]) ? images[0].src : '',
@@ -230,12 +227,13 @@ const fill = async (source, { apiConnector, elasticClient, config, logger }) => 
     "category": extractCategories(categories),
     "category_ids": extractCategories(categories).map((value, index) => value.category_id),
     "configurable_children": variations ? await extractConfigurableChildren(source.id, variations, apiConnector(config), logger) : null,
-    "configurable_options": attributes ? await extractConfigurableOptions(attributes, apiConnector(config), logger): null
+    "configurable_options": attributes ? await extractConfigurableOptions(attributes, apiConnector(config), logger): null,
+    "short_description": short_description,
   }
 
   const isInStock = !source.manage_stock || source.stock_status === 'instock'
   Object.assign(output, {
-    "stock":{
+    "stock": {
       "is_in_stock": isInStock,
       "quantity": source.manage_stock ? source.stock.quantity : 1e5,
     },
